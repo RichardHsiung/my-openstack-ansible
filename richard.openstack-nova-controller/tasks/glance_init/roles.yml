@@ -1,0 +1,15 @@
+---
+- block:
+  - name:         Get list of roles.
+    register:     openstack_roles
+    changed_when: no
+    command:      openstack role list -f value -c Name
+
+  - name:         Assign roles.
+    changed_when: no
+    command:      'openstack role add --project service --user {{ item }} admin'
+    when:         '"{{ item }}" not in openstack_roles.stdout'
+    with_items:
+      - glance
+
+

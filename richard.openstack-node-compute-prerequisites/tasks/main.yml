@@ -1,0 +1,26 @@
+- name: Setup chrony for clock synchronization
+  yum: name=chrony  state=present
+
+- name: copy chrony.conf
+  copy: src=chrony.conf dest=/etc/chrony.conf
+
+- name: enable chrony
+  service: name=chronyd state=restarted enabled=yes
+
+- name: Setup net-tools
+  yum: name=net-tools state=present
+
+- name: Setup bridge-utils
+  yum: name=bridge-utils state=present
+
+- name: Setup OpenStack Newton repository.
+  yum: name=centos-release-openstack-newton state=present
+
+- name: Install OpenStack client.
+  yum: name=python-openstackclient state=present
+
+- name: Install package to automatically manage security policies for OpenStack services.
+  yum: name=openstack-selinux state=present
+
+- name: clock synchronized
+  command: chronyc sources

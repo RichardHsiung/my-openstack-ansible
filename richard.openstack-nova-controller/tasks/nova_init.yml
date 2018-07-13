@@ -1,0 +1,14 @@
+- block:
+    - include: nova_init/users.yml
+    - include: nova_init/roles.yml
+    - include: nova_init/service.yml
+    - include: nova_init/endpoint.yml
+
+  environment:
+    OS_USERNAME:            admin
+    OS_PASSWORD:            '{{ admin_password }}'
+    OS_PROJECT_NAME:        admin
+    OS_USER_DOMAIN_NAME:    Default
+    OS_PROJECT_DOMAIN_NAME: Default
+    OS_AUTH_URL:            'http://{{ nova_host }}:35357/v3'
+    OS_IDENTITY_API_VERSION: 3

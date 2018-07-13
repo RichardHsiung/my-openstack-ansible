@@ -1,0 +1,32 @@
+---
+# tasks file for richard.openstack-nova-controller
+
+- include: database.yml
+- include: rabbitmq.yml
+- include: memcached.yml
+
+- name:     Configure hosts
+  register: hosts_config
+  template:
+    src:  hosts.j2
+    dest: /etc/hosts
+
+# for keystone
+- include: keystone.yml
+- include: environment.yml
+- include: keystone_init.yml
+
+# for glance
+- include: glance_init.yml
+- include: glance.yml
+- include: glance_image.yml
+
+# for nova
+- include: nova_init.yml
+- include: nova.yml
+
+#for nova network
+- include: nova_network.yml
+
+# for dashboard
+- include: dashboard.yml

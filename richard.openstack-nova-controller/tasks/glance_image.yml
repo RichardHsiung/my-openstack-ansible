@@ -1,0 +1,26 @@
+---
+- name: 'Download {{ item.name }} image.'
+  get_url:
+    url:  '{{ item.url }}'
+    dest: '{{ item.dest }}'
+  with_items:
+    - name: cirros 
+      url:  http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+      dest: /root/cirros-0.3.4-x86_64-disk.img
+
+- block:
+  - name:    'Create {{ item.name }} image.'
+    command: 'openstack image create "{{ item.name }}" --file {{ item.dest }} --disk-format qcow2 --container-format bare --public'
+    with_items:
+    - name: cirros 
+      url:  http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img
+      dest: /root/cirros-0.3.4-x86_64-disk.img
+
+  environment:
+    OS_USERNAME:            admin
+    OS_PASSWORD:            '{{ admin_password }}'
+    OS_PROJECT_NAME:        admin
+    OS_USER_DOMAIN_NAME:    Default
+    OS_PROJECT_DOMAIN_NAME: Default
+    OS_AUTH_URL:            'http://{{ nova_host }}:35357/v3'
+    OS_IDENTITY_API_VERSION: 3

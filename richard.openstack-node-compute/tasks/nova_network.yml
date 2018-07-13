@@ -1,0 +1,34 @@
+---
+- name: Setup nova-network
+  yum:
+    name: openstack-nova-network
+    state: present
+
+- name: Configure nova network
+  ini_file:
+    dest:    /etc/nova/nova.conf
+    section: DEFAULT
+    option:  '{{ item.key }}'
+    value:   '{{ item.value }}'
+  with_dict:
+    flat_network_bridge:       'br0'
+    multi_host:                'True'
+    network_manager:           'nova.network.manager.FlatManager'
+    flat_injected:             'True'
+    injected_network_template: '/etc/nova/interfaces.template'
+    force_config_drive:        'True'
+    config_drive_format:       'iso9660'
+    mkisofs_cmd:               'genisoimage'
+
+- name: Copy interfaces template
+  copy:
+    src: interfaces.template
+    dest: /etc/nova/interfaces.template
+
+- name: Enabled nova network
+  service:
+    name:    '{{ item }}'
+    state:   started
+    enabled: yes
+  with_items:
+    - openstack-nova-network.service

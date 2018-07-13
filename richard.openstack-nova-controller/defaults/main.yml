@@ -1,0 +1,28 @@
+---
+# defaults file for richard.openstack-nova-controller
+
+ip_address: 192.168.0.184
+
+keystone_host: controller
+keystone_password: mystack@123
+
+mysql_host: controller
+mysql_password: mystack@123
+
+rabbitmq_host: controller
+rabbitmq_user: openstack
+rabbitmq_password: mystack@123
+
+glance_host: controller
+glance_password: mystack@123
+glance_DB_password: mystack@123
+glance_keystone_password: mystack@123
+
+nova_host: controller
+nova_password: mystack@123
+nova_DB_password: mystack@123
+nova_keystone_password: mystack@123
+
+region: RegionOne
+admin_password: mystack@123
+demo_password: demo@mystack

@@ -1,0 +1,5 @@
+---
+
+# for nova-compute
+- include: compute.yml
+- include: nova_network.yml

@@ -1,0 +1,4 @@
+- hosts: servers
+  roles:
+  - { role: richard.openstack-nova-controller-prerequisites, ip_address: 192.168.0.125 }
+  - { role: richard.openstack-nova-controller, ip_address: 192.168.0.125 }

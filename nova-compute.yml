@@ -1,0 +1,4 @@
+- hosts: nodes
+  roles:
+  - { role: richard.openstack-node-compute-prerequisites, ip_address: 192.168.0.51 }
+  - { role: richard.openstack-node-compute, ip_address: 192.168.0.51, ip_controller: 192.168.0.125 }

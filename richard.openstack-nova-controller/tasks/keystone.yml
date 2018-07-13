@@ -1,0 +1,81 @@
+---
+- name: Create keystone DB
+  mysql_db:
+    login_user:     root
+    login_password: '{{ mysql_password }}'
+    name:           keystone 
+    state:          present
+
+- name: Create keystone DB user
+  mysql_user:
+    login_user:     root
+    login_password: '{{ mysql_password }}'
+    login_host:     localhost
+    name:           keystone
+    password:       '{{ keystone_password }}'
+    priv:           'keystone.*:ALL,GRANT'
+    state:          present
+    host:           '{{ item }}'
+    append_privs:   yes
+  with_items:
+    - 'localhost'
+    - '%'
+
+- name: Setup keystone
+  yum:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - openstack-keystone
+    - httpd
+    - mod_wsgi
+
+- name: Configure the keystone DB
+  ini_file:
+    dest:    /etc/keystone/keystone.conf
+    section: database
+    option:  connection
+    value:   'mysql+pymysql://keystone:{{ keystone_password }}@{{ mysql_host }}/keystone'
+
+- name: Configure the keystone token
+  ini_file:
+    dest:    /etc/keystone/keystone.conf
+    section: token
+    option:  provider
+    value:   'fernet'
+
+- name: Populate the Identity service DB
+  changed_when: no
+  command:      keystone-manage db_sync
+  become:       true
+  become_user:  keystone
+
+- name: Initialize Fernet key repositoies
+  changed_when: no
+  command:      '{{ item }}'
+  with_items:
+    - keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+    - keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+
+- name: Bootstrap the Identity service
+  changed_when: no
+  command: 'keystone-manage bootstrap --bootstrap-password {{ admin_password }} --bootstrap-admin-url http://{{ nova_host }}:35357/v3/ --bootstrap-internal-url http://{{ nova_host }}:35357/v3/ --bootstrap-public-url http://{{ nova_host }}:5000/v3/ --bootstrap-region-id {{ region }}'
+
+- name: Configure httpd
+  copy:
+    src:  httpd.conf
+    dest: /etc/httpd/conf/httpd.conf
+
+- name: Create keystone conf
+  command: ln -sf /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/
+
+- name: Enable and start httpd
+  service:
+    name:    httpd.service
+    state:   started
+    enabled: yes
+
+- name: Restart Apache if the config was changed.
+  service:
+    name:  httpd.service
+    state: restarted

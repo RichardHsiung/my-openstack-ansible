@@ -1,0 +1,19 @@
+---
+- name: Setup memcached
+  yum:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - memcached
+    - python-memcached
+
+- name: copy config file
+  copy:
+    src: memcached
+    dest: /etc/sysconfig/memcached
+
+- name: Enable memcached
+  command: systemctl enable memcached.service
+
+- name: Start memcached
+  command: systemctl start memcached.service

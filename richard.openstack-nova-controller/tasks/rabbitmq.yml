@@ -1,0 +1,17 @@
+---
+- name: Setup rabbitmq
+  yum:
+    name: rabbitmq-server
+    state: present
+
+- name: Enable rabbitmq-server
+  command: systemctl enable rabbitmq-server.service
+
+- name: Start rabbitmq-server
+  command: systemctl start rabbitmq-server.service
+
+- name: Configure rabbitmq
+  command: 'rabbitmqctl add_user {{ rabbitmq_user }} {{ rabbitmq_password }}'
+ 
+- name: Permit configuration
+  command: 'rabbitmqctl set_permissions {{ rabbitmq_user}} ".*" ".*" ".*"'

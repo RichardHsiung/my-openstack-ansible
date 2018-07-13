@@ -1,0 +1,12 @@
+---
+- name:         Get list of users.
+  register:     openstack_users
+  changed_when: no
+  command:      openstack user list -f value -c Name --domain default
+
+- name:    Create users.
+  command: 'openstack user create --domain default --password {{ item.password }} {{ item.name }}'
+  when:    '"{{ item.name }}" not in openstack_users.stdout'
+  with_items:
+    - name: demo
+      password: '{{ demo_password }}'

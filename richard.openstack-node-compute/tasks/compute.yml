@@ -1,0 +1,91 @@
+---
+
+- name: Setup nova compute
+  yum:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - openstack-nova-compute
+
+- name: remove nova.conf
+  command: rm -fr /etc/nova/nova.conf
+
+- name: Configure nova compute and metadata
+  ini_file:
+    dest:     /etc/nova/nova.conf
+    section:  DEFAULT
+    option:   '{{ item.key }}'
+    value:    '{{ item.value }}'
+  with_dict:
+      enabled_apis:    'osapi_compute,metadata'
+      transport_url:   'rabbit://openstack:{{ rabbitmq_password }}@{{ rabbitmq_host }}'
+      auth_strategy:   'keystone'
+      my_ip:           '{{ ip_address }}'
+      use_neutron:     'False'
+      firewall_driver: 'nova.virt.firewall.NoopFirewallDriver'
+
+- name: Configure nova keystone
+  ini_file:
+    dest:    /etc/nova/nova.conf
+    section: keystone_authtoken
+    option:  '{{ item.key }}'
+    value:   '{{ item.value }}'
+  with_dict:
+    auth_uri:            'http://{{ keystone_host }}:5000'
+    auth_url:            'http://{{ keystone_host }}:35357'
+    memcached_servers:   '{{ keystone_host }}:11211'
+    auth_type:           'password'
+    project_domain_name: 'Default'
+    user_domain_name:    'Default'
+    project_name:        'service'
+    username:            'nova'
+    password:            '{{ nova_keystone_password }}'
+
+- name: Configure nova vnc
+  ini_file:
+    dest:     /etc/nova/nova.conf
+    section:  vnc
+    option:   '{{ item.key }}'
+    value:    '{{ item.value }}'
+  with_dict:
+      enabled: 'True'
+      vncserver_listen:              '0.0.0.0'
+      vncserver_proxyclient_address: '{{ ip_address }}'
+      novncproxy_base_url:           'http://{{ nova_host }}:6080/vnc_auto.html'
+
+- name: Configure nova compute glance
+  ini_file:
+    dest:    /etc/nova/nova.conf
+    section: glance
+    option:  '{{ item.key }}'
+    value:   '{{ item.value }}'
+  with_dict:
+    api_servers:   'http://{{ glance_host }}:9292'
+
+- name: Configure nova compute oslo_concurrency
+  ini_file:
+    dest:    /etc/nova/nova.conf
+    section: oslo_concurrency
+    option:  lock_path
+    value:   '/var/lib/nova/tmp'
+
+- name: Configure nova compute libvirt
+  ini_file:
+    dest:    /etc/nova/nova.conf
+    section: libvirt
+    option:  virt_type
+    value:   'qemu'
+
+- name: copy hosts
+  template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: Enabled nova
+  service:
+    name:    '{{ item }}'
+    state:   started
+    enabled: yes
+  with_items:
+    - libvirtd.service
+    - openstack-nova-compute.service
